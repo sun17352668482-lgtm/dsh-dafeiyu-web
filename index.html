@@ -1,0 +1,897 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#08122b">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="大肥鱼">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<link rel="icon" href="/icon-192.png">
+<meta name="theme-color" content="#08122b">
+<title>大肥鱼 ·桌宠</title>
+<style>
+:root{
+  --ink:#dce9ff; --dim:#8ea6cf; --dim2:#6b81a8;
+  --card:rgba(16,30,60,.66); --card2:rgba(10,20,42,.82);
+  --line:rgba(125,175,255,.18); --line2:rgba(125,175,255,.32);
+  --acc:#5b8fe6; --acc2:#7fd4ff; --ok:#5be0a0; --warn:#ffbe5c; --bad:#ff7189;
+  --petW:62vw;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0;overflow:hidden;background:#04080f;color:var(--ink);
+  font:500 14px/1.45 -apple-system,"PingFang SC","Noto Sans CJK SC",system-ui,sans-serif;
+  user-select:none;-webkit-user-select:none;touch-action:none;overscroll-behavior:none}
+#bg{position:fixed;inset:0;
+  background:
+   radial-gradient(115% 62% at 50% -6%, #1b4a86 0%, rgba(18,52,96,.62) 30%, rgba(8,18,40,0) 62%),
+   radial-gradient(90% 50% at 82% 108%, #123a63 0%, rgba(8,18,40,0) 60%),
+   radial-gradient(80% 46% at 12% 96%, #0f2f52 0%, rgba(8,18,40,0) 58%),
+   linear-gradient(180deg,#0a1830 0%,#071227 46%,#040a16 100%);}
+#fx{position:fixed;inset:0;pointer-events:none;opacity:.85}
+
+/* ---------- 桌宠本体 ---------- */
+#petWrap{position:absolute;width:var(--petW);aspect-ratio:412/344;left:0;top:0;
+  will-change:transform;transform:translate3d(0,0,0);touch-action:none;z-index:6}
+#petWrap.air{filter:drop-shadow(0 22px 26px rgba(0,0,0,.55))}
+#petWrap .layer{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;
+  opacity:0;transition:opacity .13s linear;pointer-events:none;
+  -webkit-user-drag:none;image-rendering:auto}
+#petWrap .layer.on{opacity:1}
+#petWrap .layer:first-child{opacity:1}
+
+/* ---------- 天气卡 ---------- */
+.ui{transition:opacity .25s,transform .25s}
+body.clean .ui{opacity:0;pointer-events:none}
+#hud{position:fixed;left:10px;top:calc(8px + env(safe-area-inset-top));width:min(58vw,232px);
+  background:var(--card);border:1px solid var(--line);border-radius:16px;padding:9px 11px 10px;
+  backdrop-filter:blur(16px) saturate(1.2);-webkit-backdrop-filter:blur(16px) saturate(1.2);
+  box-shadow:0 10px 28px rgba(0,0,0,.34);z-index:9}
+#hud .h1{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--dim);
+  letter-spacing:.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#hud .h1 b{color:#a9c6f5;font-weight:600}
+#hud .h2{display:flex;align-items:flex-end;gap:8px;margin-top:4px}
+#hud .tp{font-size:27px;font-weight:700;letter-spacing:-.6px;line-height:1;
+  background:linear-gradient(180deg,#eaf4ff,#9fc8ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+#hud .wx{font-size:12px;color:#bcd4f7;padding-bottom:2px}
+#hud .h3{margin-top:6px;font-size:10.5px;color:var(--dim2);line-height:1.5}
+#hud .bar{display:flex;gap:5px;margin-top:6px;flex-wrap:wrap}
+#hud .tag{font-size:10px;padding:2px 6px;border-radius:7px;background:rgba(96,150,240,.14);
+  border:1px solid var(--line);color:#a7c4ee}
+#hud.fold .h2,#hud.fold .h3,#hud.fold .bar{display:none}
+#hud .rf{position:absolute;right:8px;top:7px;font-size:10px;color:var(--dim2);padding:2px 5px;
+  border-radius:6px;border:1px solid transparent}
+#hud .rf:active{background:rgba(120,170,255,.14);border-color:var(--line)}
+
+/* ---------- 状态芯片 ---------- */
+#chip{position:fixed;right:42px;top:calc(8px + env(safe-area-inset-top));
+  background:var(--card);border:1px solid var(--line);border-radius:13px;padding:7px 10px;
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);z-index:9;
+  box-shadow:0 10px 26px rgba(0,0,0,.3);max-width:40vw}
+#chip .s1{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600}
+#chip .dot{width:7px;height:7px;border-radius:50%;background:var(--ok);box-shadow:0 0 10px currentColor;flex:0 0 auto}
+#chip .s2{font-size:10px;color:var(--dim2);margin-top:3px;display:flex;align-items:center;gap:5px}
+#chip .eb{display:flex;gap:2px}
+#chip .eb i{width:4px;height:8px;border-radius:1px;background:rgba(140,180,255,.22);display:block}
+#chip .eb i.on{background:var(--acc2);box-shadow:0 0 6px rgba(127,212,255,.7)}
+
+/* ---------- 底部操作条 ---------- */
+/* ---------- Token 钱包 ---------- */
+#wallet{position:fixed;right:10px;top:calc(68px + env(safe-area-inset-top));width:min(34vw,130px);
+  background:var(--card);border:1px solid var(--line);border-radius:15px;padding:9px 11px 10px;
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  box-shadow:0 10px 26px rgba(0,0,0,.34);z-index:7}
+#wallet .w1{display:flex;align-items:center;justify-content:space-between;font-size:10px;color:var(--dim)}
+#wallet .w1 b{font-weight:600;color:#a9c6f5;letter-spacing:.3px}
+#wallet .rf{font-size:9.5px;color:var(--dim2);padding:1px 5px;border-radius:6px;border:1px solid transparent}
+#wallet .rf:active{background:rgba(120,170,255,.14);border-color:var(--line)}
+#wallet .w2{margin-top:3px;display:flex;align-items:flex-end;gap:3px;line-height:1}
+#wallet .w2 em{font-style:normal;font-size:11px;color:#8fb3e8;padding-bottom:1px}
+#wallet .w2 b{font-size:17px;font-weight:700;letter-spacing:-.5px;
+  background:linear-gradient(180deg,#eaf3ff,#8fb8f0);-webkit-background-clip:text;background-clip:text;color:transparent}
+#wallet .w3{margin-top:3px;font-size:9px;color:#9fbbdf;line-height:1.45}
+#wallet .w3 i{font-style:normal;color:var(--warn)}
+#wallet .w4{margin-top:2px;font-size:8.5px;color:var(--dim2);line-height:1.4}
+#wallet.off .w2 b{background:none;-webkit-text-fill-color:#5f7699;color:#5f7699}
+#wallet.low .w2 b{background:linear-gradient(180deg,#ffe0b0,#ff9b62);-webkit-background-clip:text;background-clip:text}
+#quit{position:fixed;right:8px;top:calc(8px + env(safe-area-inset-top));width:30px;height:30px;
+  padding:0;border-radius:9px;background:var(--card);border:1px solid var(--line);color:#9fb8dd;
+  display:flex;align-items:center;justify-content:center;font-size:13px;line-height:1;z-index:12;
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);font-family:inherit}
+#quit:active{background:rgba(255,110,140,.2);color:#ffb0c0;border-color:rgba(255,110,140,.35)}
+/* ---------- 关机遮罩 ---------- */
+#bye{position:fixed;inset:0;z-index:99;display:none;align-items:center;justify-content:center;
+  background:radial-gradient(120% 90% at 50% 20%,#0b1a33 0%,#050b17 72%);}
+#bye.on{display:flex}
+#bye .byebox{text-align:center;padding:20px 26px;border-radius:18px;
+  border:1px solid rgba(120,170,255,.18);background:rgba(255,255,255,.04)}
+#bye .byebig{font-size:17px;font-weight:600;color:#dbe9ff;letter-spacing:.5px}
+#bye .byesub{margin-top:8px;font-size:12px;color:#7f97bd}
+#bye.load .byesub{color:#9fc4ff}
+#wallet .kb{color:#7fd4ff;text-decoration:underline}
+#wallet .kbox{margin-top:6px;display:flex;gap:4px}
+#wallet .kbox input{flex:1;min-width:0;background:rgba(255,255,255,.07);border:1px solid var(--line);border-radius:7px;color:var(--ink);font-size:10px;padding:4px 6px;font-family:inherit}
+#wallet .kbox button{font-size:10px;padding:4px 7px;border-radius:7px;background:rgba(120,170,255,.16);border:1px solid var(--line);color:#cfe2ff;font-family:inherit}
+#dock{position:fixed;left:50%;bottom:calc(12px + env(safe-area-inset-bottom));transform:translateX(-50%);
+  display:flex;gap:6px;padding:6px;background:var(--card);border:1px solid var(--line);
+  border-radius:18px;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  box-shadow:0 12px 30px rgba(0,0,0,.36);z-index:9}
+#dock button{appearance:none;border:0;background:rgba(94,144,232,.13);color:#cfe0ff;
+  border-radius:13px;padding:8px 10px;font-size:11.5px;font-weight:600;line-height:1;
+  display:flex;flex-direction:column;align-items:center;gap:3px;min-width:52px;font-family:inherit}
+#dock button:active{background:rgba(110,165,255,.3);transform:scale(.95)}
+#dock button em{font-style:normal;font-size:15px;line-height:1}
+
+/* ---------- 抽屉面板 ---------- */
+#sheet{position:fixed;left:0;right:0;bottom:0;z-index:20;max-height:82vh;overflow:auto;
+  background:linear-gradient(180deg,rgba(12,24,48,.96),rgba(6,12,26,.99));
+  border-top:1px solid var(--line2);border-radius:22px 22px 0 0;
+  transform:translateY(102%);transition:transform .32s cubic-bezier(.22,.9,.24,1);
+  padding:10px 14px calc(20px + env(safe-area-inset-bottom));
+  box-shadow:0 -20px 50px rgba(0,0,0,.6);-webkit-overflow-scrolling:touch}
+#sheet.on{transform:translateY(0)}
+#sheet .grab{width:38px;height:4px;border-radius:2px;background:rgba(150,190,255,.32);margin:2px auto 10px}
+#sheet .sh{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+#sheet .sh b{font-size:15px}
+#sheet .sh button{appearance:none;border:1px solid var(--line);background:rgba(94,144,232,.14);
+  color:#cfe0ff;border-radius:11px;padding:6px 12px;font-size:12px;font-family:inherit}
+.sec{margin-top:14px}
+.secT{font-size:11px;color:var(--dim2);margin-bottom:7px;letter-spacing:.3px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:9px 11px;background:rgba(20,36,68,.62);border:1px solid var(--line);
+  border-radius:12px;margin-bottom:6px;font-size:12.5px}
+.row input[type=range]{width:44%;accent-color:var(--acc)}
+.row input[type=checkbox]{width:18px;height:18px;accent-color:var(--acc)}
+.row select{background:rgba(10,22,44,.9);color:#cfe0ff;border:1px solid var(--line2);
+  border-radius:9px;padding:5px 7px;font-size:12px;font-family:inherit}
+.wide{width:100%;appearance:none;border:1px dashed var(--line2);background:rgba(94,144,232,.08);
+  color:#a9c6f5;border-radius:12px;padding:10px;font-size:12.5px;font-family:inherit;margin-top:2px}
+.ses{background:rgba(20,36,68,.62);border:1px solid var(--line);border-radius:13px;padding:9px 10px;margin-bottom:7px}
+.ses .t{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;margin-bottom:7px}
+.ses .t span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ses .t i{font-style:normal;font-size:10px;color:var(--dim2);border:1px solid var(--line);
+  border-radius:6px;padding:1px 5px}
+.ses .t .del{color:#ff8fa0;font-size:11px;padding:1px 6px;border-radius:6px;background:rgba(255,110,130,.1)}
+.ses .bs{display:flex;flex-wrap:wrap;gap:5px}
+.ses .bs button{appearance:none;border:1px solid var(--line);background:rgba(94,144,232,.1);
+  color:#c8daf8;border-radius:9px;padding:6px 9px;font-size:11.5px;font-family:inherit}
+.ses .bs button.on{background:linear-gradient(180deg,rgba(110,170,255,.42),rgba(70,120,220,.34));
+  border-color:rgba(150,200,255,.55);color:#fff;box-shadow:0 0 14px rgba(90,150,255,.28)}
+.ses .sub{margin-top:6px;display:flex;gap:6px;align-items:center;font-size:11px;color:var(--dim2)}
+
+#toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));transform:translate(-50%,8px);
+  background:rgba(10,22,44,.94);border:1px solid var(--line2);color:#d7e7ff;font-size:12px;
+  padding:8px 14px;border-radius:12px;opacity:0;transition:opacity .2s,transform .2s;
+  z-index:30;pointer-events:none;max-width:78vw;text-align:center}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+#tip{position:fixed;left:50%;bottom:calc(76px + env(safe-area-inset-bottom));transform:translateX(-50%);
+  font-size:10.5px;color:rgba(160,190,235,.55);white-space:nowrap;z-index:8}
+</style>
+</head>
+<body>
+<div id="bg"></div>
+<canvas id="fx"></canvas>
+
+<div id="petWrap">
+  <img class="layer" id="la" alt="大肥鱼">
+  <img class="layer" id="lb" alt="">
+</div>
+
+<div id="hud" class="ui">
+  <div class="h1">📍 <b>陕西·西安·临潼 北田街道</b></div>
+  <div class="rf" id="wxRf">刷新</div>
+  <div class="h2"><div class="tp" id="wxT">10.8°</div><div class="wx" id="wxS">阴</div></div>
+  <div class="h3" id="wxD">体感 10.1° · 湿度 80% · 北风 0.2km/h（0级 无风）</div>
+  <div class="bar">
+    <div class="tag" id="wxR">今日 10.6~18.1°</div>
+    <div class="tag" id="wxP">降水 28%</div>
+    <div class="tag" id="wxSun">☀ 06:51 / 18:04</div>
+  </div>
+</div>
+
+<div id="chip" class="ui">
+  <div class="s1"><i class="dot" id="cDot"></i><span id="cTxt">空闲</span></div>
+  <div class="s2"><span id="cSub">主会话</span><span class="eb" id="cEb"><i></i><i></i><i></i></span></div>
+</div>
+
+<button id="quit" class="ui" title="关闭">✕</button>
+<div id="wallet" class="ui">
+  <div class="w1"><b>DeepSeek 钱包</b><span class="rf" id="wRf">刷新</span></div>
+  <div class="w2"><em>¥</em><b id="wBal">--</b></div>
+  <div class="w3" id="wToday">今日已用 --</div>
+  <div class="w4" id="wSub">读取中…</div>
+</div>
+<div id="tip" class="ui">点头部=摸头 · 点尾巴=吐泡 · 拖走会吓到它</div>
+
+<div id="dock" class="ui">
+  <button data-a="pat"><em>🫧</em>摸头</button>
+  <button data-a="poke"><em>👋</em>戳一下</button>
+  <button data-a="eat"><em>🍚</em>喂Token</button>
+  <button data-a="tail"><em>💭</em>吐泡泡</button>
+  <button data-a="menu"><em>⋯</em>控制台</button>
+</div>
+
+<div id="sheet">
+  <div class="grab"></div>
+  <div class="sh"><b>控制台</b><button id="closeSheet">收起</button></div>
+
+  <div class="sec">
+    <div class="secT">会话 · 按「等待确认 &gt; 出错 &gt; 工作 &gt; 思考 &gt; 空闲」取最高优先级显示</div>
+    <div id="sesList"></div>
+    <button class="wide" id="addSes">＋ 新建会话</button>
+  </div>
+
+  <div class="sec">
+    <div class="secT">演示</div>
+    <label class="row"><span>自动推送 Agent 事件</span><input type="checkbox" id="autoDemo"></label>
+  </div>
+
+  <div class="sec">
+    <div class="secT">外观与偏好</div>
+    <label class="row"><span>桌宠大小</span><input type="range" id="sizeR" min="36" max="92" value="62"></label>
+    <label class="row"><span>微动作频率</span>
+      <select id="lively"><option value="quiet">安静</option><option value="normal" selected>正常</option><option value="lively">活泼</option></select>
+    </label>
+    <label class="row"><span>声音</span><input type="checkbox" id="sndOn" checked></label>
+    <label class="row"><span>天气卡</span><input type="checkbox" id="hudOn" checked></label>
+    <button class="wide" id="resetPos">回到默认位置</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ============================================================
+   大肥鱼 手机桌宠 —— 素材一比一来自 QCYTSN/dsh-dafeiyu
+   assets/pet（16 组、共 3444 帧，412x344 @24fps）
+   ============================================================ */
+const $ = s => document.querySelector(s);
+const row = s => document.querySelector(s);
+
+/* ---------- 动画表：帧数来自 pet-manifest.json，frameMs=42 ---------- */
+const FM = 42;
+const ANIM = {
+  idle:{f:241,loop:1}, waiting:{f:241,loop:1}, thinking:{f:241,loop:1},
+  working:{f:241,loop:1}, working_search:{f:241,loop:1}, working_command:{f:241,loop:1},
+  success:{f:241,loop:0}, error:{f:118,loop:0},
+  dragging:{f:144,loop:1}, dragging_release:{f:49,loop:0},
+  head_pat:{f:241,loop:0}, poke:{f:241,loop:0}, tail:{f:241,loop:0},
+  eat_token:{f:241,loop:0}, idle_stretch:{f:241,loop:0}, idle_yawn:{f:241,loop:0}
+};
+const DUR = {}; for (const k in ANIM) DUR[k] = ANIM[k].f * FM;
+
+/* ---------- 双层 img 交叉淡入，保证一次性动画能从头重播 ---------- */
+const L = [$('#la'), $('#lb')];
+let front = 0, curName = '', curUrl = '';
+const twinN = {};
+function urlFor(name){
+  if (ANIM[name].loop) return 'anim/' + name + '.webp';
+  const n = (twinN[name] = (twinN[name] || 0) + 1);
+  const suf = n % 3 === 0 ? '' : (n % 3 === 1 ? '_r' : '_r2');
+  return 'anim/' + name + suf + '.webp';
+}
+function setClip(name, force){
+  if (!ANIM[name]) name = 'idle';
+  const url = urlFor(name);
+  if (!force && name === curName && url === curUrl) return;
+  const idx = 1 - front;
+  const el = L[idx];
+  const prev = front;
+  el.onload = function(){
+    el.style.opacity = '1';
+    L[prev].style.opacity = '0';
+    front = idx;
+    el.onload = null;
+  };
+  el.onerror = function(){ /* 缺文件时保留上一帧，不白屏 */ };
+  el.src = url;
+  curName = name; curUrl = url;
+}
+
+/* ---------- 状态机 ---------- */
+const PRI = { waiting:5, error:4, working:3, working_search:3, working_command:3, thinking:2, idle:1 };
+const ACT = { searching:'working_search', commanding:'working_command', editing:'working',
+              testing:'working_command', 'using-tool':'working' };
+const ACT_CN = { searching:'搜索中', commanding:'跑命令', editing:'改文件', testing:'跑测试', 'using-tool':'调工具' };
+const STATE_CN = { idle:'空闲', thinking:'思考中', working:'工作中', waiting:'等你确认', success:'完成啦', error:'出错了' };
+const EFFORT_CN = { low:'低', mid:'中', high:'高' };
+
+let sessions = [
+  { id:'s1', name:'主会话', state:'idle', act:'editing', effort:'high' }
+];
+let base = 'idle', overlay = '', overlayEnd = 0;
+let lively = 'normal', soundOn = true;
+
+function clipOf(s){
+  if (s.state === 'working') return ACT[s.act] || 'working';
+  return s.state;
+}
+function topSession(){
+  let best = null, bp = -1;
+  for (const s of sessions){
+    const p = PRI[clipOf(s)] || 1;
+    if (p > bp){ bp = p; best = s; }
+  }
+  return best;
+}
+function baseClip(){
+  const s = topSession();
+  return s ? clipOf(s) : 'idle';
+}
+
+function refreshBase(){
+  const nb = baseClip();
+  if (nb !== base){
+    base = nb;
+    if (overlay){
+      const op = PRI[overlay] || 0, np = PRI[nb] || 1;
+      if (np >= 4 && np > op) overlay = '';       // 急事抢镜头：等确认 / 出错
+    }
+    if (!overlay) setClip(base, true);
+    updateChip();
+  }
+}
+
+function playOverlay(name){
+  overlay = name;
+  overlayEnd = performance.now() + DUR[name];
+  setClip(name, true);
+}
+
+/* ---------- 状态芯片 ---------- */
+function updateChip(){
+  const s = topSession();
+  const clip = s ? clipOf(s) : 'idle';
+  let txt = STATE_CN[clip] || '空闲';
+  let sub = s ? s.name : '无会话';
+  if (clip === 'working' || clip === 'working_search' || clip === 'working_command'){
+    if (s && s.state === 'working') sub = s.name + ' · ' + (ACT_CN[s.act] || '干活中');
+  } else if (clip === 'waiting') sub = s.name + ' · 需要你点一下';
+  const col = { idle:'#5be0a0', thinking:'#7fd4ff', working:'#5b8fe6', waiting:'#ffbe5c', error:'#ff7189', success:'#5be0a0' }[clip] || '#5be0a0';
+  $('#cTxt').textContent = txt;
+  $('#cSub').textContent = sub;
+  $('#cDot').style.background = col;
+  $('#cDot').style.color = col;
+  const lv = { low:1, mid:2, high:3 }[(s && s.effort) || 'high'];
+  const bars = $('#cEb').children;
+  for (let i = 0; i < 3; i++) bars[i].className = i < lv ? 'on' : '';
+}
+
+/* ---------- 音效 ---------- */
+let actx = null;
+function ac(){
+  if (!actx) { try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e){ return null; } }
+  if (actx && actx.state === 'suspended') actx.resume();
+  return actx;
+}
+let wavSuccess = null, wavError = null;
+function loadWav(){
+  try {
+    wavSuccess = new Audio('anim/sfx/success.wav'); wavSuccess.preload = 'auto';
+    wavError = new Audio('anim/sfx/error.wav'); wavError.preload = 'auto';
+  } catch(e){}
+}
+function sfxWav(name){
+  if (!soundOn) return;
+  const a = name === 'success' ? wavSuccess : wavError;
+  if (!a) return;
+  try { a.currentTime = 0; a.volume = .5; a.play().catch(()=>{}); } catch(e){}
+}
+function beep(freq, dur, type, gain, slideTo){
+  if (!soundOn) return;
+  const c = ac(); if (!c) return;
+  const o = c.createOscillator(), g = c.createGain();
+  o.type = type || 'sine';
+  o.frequency.setValueAtTime(freq, c.currentTime);
+  if (slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, c.currentTime + dur);
+  g.gain.setValueAtTime(0.0001, c.currentTime);
+  g.gain.exponentialRampToValueAtTime(gain || .12, c.currentTime + .012);
+  g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + dur);
+  o.connect(g); g.connect(c.destination);
+  o.start(); o.stop(c.currentTime + dur + .02);
+}
+const SND = {
+  pat(){ beep(880, .1, 'sine', .1); setTimeout(()=>beep(1180,.12,'sine',.09), 80); },
+  poke(){ beep(520, .09, 'triangle', .12, 760); },
+  eat(){ beep(420, .08, 'square', .07, 700); setTimeout(()=>beep(700,.1,'square',.06,980), 90); },
+  tail(){ beep(900, .22, 'sine', .07, 260); },
+  drop(){ beep(160, .12, 'sine', .1, 90); }
+};
+
+/* ---------- 交互 ---------- */
+let lastAct = -9999;
+const COOLDOWN = 1200;
+function interaction(name, silent){
+  const t = performance.now();
+  if (t - lastAct < COOLDOWN){ if (!silent) toast('它有点晕，等一下下…'); return; }
+  lastAct = t;
+  playOverlay(name);
+  if (!silent) $('#tip').classList.add('fade');
+}
+function toast(msg){
+  const el = $('#toast');
+  el.textContent = msg;
+  el.classList.add('on');
+  clearTimeout(el._t);
+  el._t = setTimeout(()=>el.classList.remove('on'), 1500);
+}
+
+/* ---------- 拖拽 ---------- */
+const wrap = $('#petWrap');
+const P = { x:0, y:0, w:0, h:0 };
+let drag = null, airborne = false, vel = { x:0, y:0 };
+
+function measure(){
+  const r = wrap.getBoundingClientRect();
+  P.w = r.width; P.h = r.height;
+}
+function place(x, y){
+  const maxX = window.innerWidth - P.w * .72;
+  const minX = -P.w * .28;
+  const maxY = window.innerHeight - P.h * .82;
+  const minY = -P.h * .1;
+  P.x = Math.min(maxX, Math.max(minX, x));
+  P.y = Math.min(maxY, Math.max(minY, y));
+  wrap.style.transform = 'translate3d(' + P.x + 'px,' + P.y + 'px,0)';
+}
+function defaultPos(){
+  measure();
+  place((window.innerWidth - P.w) / 2, window.innerHeight - P.h - 96);
+}
+
+function hitRegion(cx, cy){
+  const r = wrap.getBoundingClientRect();
+  const fx = (cx - r.left) / r.width;
+  const fy = (cy - r.top) / r.height;
+  if (fx > .82 || fx < .16) return 'tail';
+  if (fy < .48) return 'head_pat';
+  return 'poke';
+}
+
+let down = null;
+wrap.addEventListener('pointerdown', e => {
+  e.preventDefault();
+  wrap.setPointerCapture(e.pointerId);
+  const r = wrap.getBoundingClientRect();
+  down = { x:e.clientX, y:e.clientY, ox:e.clientX - r.left, oy:e.clientY - r.top,
+           t:performance.now(), moved:false };
+  vel = { x:0, y:0 };
+}, { passive:false });
+
+wrap.addEventListener('pointermove', e => {
+  if (!down) return;
+  const dx = e.clientX - down.x, dy = e.clientY - down.y;
+  if (!down.moved && Math.hypot(dx, dy) > 8){
+    down.moved = true;
+    airborne = true;
+    wrap.classList.add('air');
+    overlay = 'dragging';
+    overlayEnd = performance.now() + 3600000;   // 拖多久循环多久
+    setClip('dragging', true);
+    $('#tip').classList.add('fade');
+  }
+  if (down.moved){
+    const nx = e.clientX - down.ox, ny = e.clientY - down.oy;
+    vel.x = nx - P.x; vel.y = ny - P.y;
+    place(nx, ny);
+  }
+}, { passive:false });
+
+wrap.addEventListener('pointerup', e => {
+  if (!down) return;
+  const wasMoved = down.moved;
+  const dt = performance.now() - down.t;
+  down = null;
+  if (wasMoved){
+    airborne = false;
+    wrap.classList.remove('air');
+    overlay = 'dragging_release';
+    overlayEnd = performance.now() + DUR.dragging_release;
+    setClip('dragging_release', true);
+    SND.drop();
+    const f = .18;
+    vel.x *= f; vel.y *= f;
+    place(P.x + vel.x * 2, P.y + vel.y * 2);
+  } else {
+    const reg = hitRegion(e.clientX, e.clientY);
+    if (reg === 'head_pat'){
+      interaction('head_pat'); SND.pat();
+    } else if (reg === 'tail'){
+      interaction('tail'); SND.tail();
+    } else {
+      interaction('poke'); SND.poke();
+    }
+  }
+});
+wrap.addEventListener('pointercancel', () => { down = null; });
+
+document.addEventListener('pointerdown', e => {
+  if (e.target.closest('#petWrap') || e.target.closest('button') ||
+      e.target.closest('input') || e.target.closest('select') || e.target.closest('#hud')){
+    bgHold = null; return;
+  }
+  bgHold = setTimeout(() => {
+    document.body.classList.toggle('clean');
+    bgHold = null;
+  }, 650);
+}, { passive:true });
+document.addEventListener('pointerup', () => { if (bgHold){ clearTimeout(bgHold); bgHold = null; } });
+let bgHold = null;
+
+/* ---------- 微动作 ---------- */
+const MICRO_MS = { quiet:[45000,90000], normal:[25000,45000], lively:[12000,22000] };
+const MICRO_CLIPS = ['idle_stretch', 'idle_yawn', 'eat_token'];
+let nextMicro = 0;
+function scheduleMicro(){
+  const r = MICRO_MS[lively] || MICRO_MS.normal;
+  nextMicro = performance.now() + r[0] + Math.random() * (r[1] - r[0]);
+}
+
+/* ---------- 主循环 ---------- */
+let lastT = performance.now();
+function loop(t){
+  const dt = Math.min(60, t - lastT);
+  lastT = t;
+  refreshBase();
+  if (overlay && t > overlayEnd){
+    overlay = '';
+    setClip(base, true);
+  }
+  if (!overlay && !down && base === 'idle' && t > nextMicro){
+    playOverlay(MICRO_CLIPS[Math.floor(Math.random() * MICRO_CLIPS.length)]);
+    scheduleMicro();
+  }
+  if (airborne) place(P.x, P.y);
+  drawFX(dt);
+  requestAnimationFrame(loop);
+}
+
+/* ---------- 背景：光柱 + 气泡 ---------- */
+const cv = $('#fx'), cx2 = cv.getContext('2d');
+let W = 0, H = 0, DPR = 1;
+const bubbles = [];
+function resize(){
+  DPR = Math.min(2, window.devicePixelRatio || 1);
+  W = window.innerWidth; H = window.innerHeight;
+  cv.width = Math.floor(W * DPR); cv.height = Math.floor(H * DPR);
+  cv.style.width = W + 'px'; cv.style.height = H + 'px';
+  cx2.setTransform(DPR, 0, 0, DPR, 0, 0);
+  measure();
+}
+function initBubbles(){
+  bubbles.length = 0;
+  const n = window.innerWidth < 420 ? 26 : 40;
+  for (let i = 0; i < n; i++){
+    bubbles.push({ x:Math.random()*1, y:Math.random()*1,
+      r:1 + Math.random()*3.4, s:.06 + Math.random()*.22,
+      p:Math.random()*6.28, a:.12 + Math.random()*.3 });
+  }
+}
+function drawFX(dt){
+  cx2.clearRect(0, 0, W, H);
+  // 光柱
+  const g = cx2.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, 'rgba(96,168,255,.10)');
+  g.addColorStop(1, 'rgba(96,168,255,0)');
+  cx2.save();
+  cx2.globalCompositeOperation = 'lighter';
+  for (let i = 0; i < 3; i++){
+    const x = W * (.18 + i * .32);
+    cx2.beginPath();
+    cx2.moveTo(x - 26, 0); cx2.lineTo(x + 26, 0);
+    cx2.lineTo(x + 92, H * .82); cx2.lineTo(x - 6, H * .82);
+    cx2.closePath();
+    cx2.fillStyle = g;
+    cx2.fill();
+  }
+  cx2.restore();
+  // 气泡
+  const k = dt / 1000;
+  for (const b of bubbles){
+    b.y -= b.s * k;
+    b.p += k * 1.4;
+    if (b.y < -.05){ b.y = 1.05; b.x = Math.random(); }
+    const x = (b.x + Math.sin(b.p) * .012) * W;
+    const y = b.y * H;
+    cx2.beginPath();
+    cx2.arc(x, y, b.r, 0, 6.283);
+    cx2.fillStyle = 'rgba(170,215,255,' + b.a + ')';
+    cx2.fill();
+  }
+}
+
+/* ---------- 天气 ---------- */
+const WMO = { 0:'晴',1:'晴间多云',2:'多云',3:'阴',45:'雾',48:'雾凇',51:'小毛雨',53:'毛毛雨',55:'浓毛雨',
+  56:'冻毛雨',57:'浓冻毛雨',61:'小雨',63:'中雨',65:'大雨',66:'冻雨',67:'强冻雨',71:'小雪',73:'中雪',
+  75:'大雪',77:'雪粒',80:'阵雨',81:'强阵雨',82:'暴雨',85:'阵雪',86:'强阵雪',95:'雷阵雨',96:'雷阵雨伴冰雹',99:'强雷阵雨伴冰雹' };
+const WX = { t:10.8, feels:10.1, hum:80, code:3, wind:0.2, winddir:0,
+  tmax:18.1, tmin:10.6, pop:28, sunrise:'06:51', sunset:'18:04', live:false };
+const DIRS = ['北','东北','东','东南','南','西南','西','西北'];
+
+function renderWX(){
+  $('#wxT').textContent = WX.t.toFixed(1) + '°';
+  $('#wxS').textContent = WMO[WX.code] || '阴';
+  const lvl = WX.wind < 1 ? 0 : WX.wind < 6 ? 1 : WX.wind < 12 ? 2 : WX.wind < 20 ? 3 : WX.wind < 29 ? 4 : WX.wind < 39 ? 5 : 6;
+  const dir = DIRS[Math.round(((WX.winddir % 360) / 45)) % 8];
+  $('#wxD').textContent = '体感 ' + WX.feels.toFixed(1) + '° · 湿度 ' + Math.round(WX.hum) +
+    '% · ' + dir + '风 ' + WX.wind.toFixed(1) + 'km/h（' + lvl + '级）';
+  $('#wxR').textContent = '今日 ' + WX.tmin.toFixed(1) + '~' + WX.tmax.toFixed(1) + '°';
+  $('#wxP').textContent = '降水 ' + (WX.pop == null ? '--' : WX.pop) + '%';
+  $('#wxSun').textContent = '☀ ' + (WX.sunrise || '--') + ' / ' + (WX.sunset || '--');
+}
+function refreshWX(silent){
+  if (!silent) toast('正在取最新天气…');
+  const u = 'https://api.open-meteo.com/v1/forecast?latitude=34.3909&longitude=109.2037' +
+    '&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,wind_direction_10m' +
+    '&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset' +
+    '&timezone=Asia%2FShanghai&forecast_days=1';
+  fetch(u, { cache:'no-store' }).then(r => r.json()).then(j => {
+    const c = j.current, d = j.daily;
+    if (!c) throw new Error('no data');
+    WX.t = c.temperature_2m; WX.feels = c.apparent_temperature; WX.hum = c.relative_humidity_2m;
+    WX.code = c.weather_code; WX.wind = c.wind_speed_10m; WX.winddir = c.wind_direction_10m;
+    WX.tmax = d.temperature_2m_max[0]; WX.tmin = d.temperature_2m_min[0];
+    WX.pop = d.precipitation_probability_max ? d.precipitation_probability_max[0] : null;
+    if (d.sunrise && d.sunrise[0]) WX.sunrise = d.sunrise[0].slice(11, 16);
+    if (d.sunset && d.sunset[0]) WX.sunset = d.sunset[0].slice(11, 16);
+    WX.live = true;
+    renderWX();
+    if (!silent) toast('天气已更新 · Open-Meteo');
+  }).catch(() => { if (!silent) toast('联网失败，先用上次的数据'); });
+}
+$('#wxRf').addEventListener('click', e => { e.stopPropagation(); refreshWX(false); });
+$('#hud').addEventListener('click', () => $('#hud').classList.toggle('fold'));
+
+/* ---------- 控制台 ---------- */
+function renderSessions(){
+  const box = $('#sesList');
+  box.innerHTML = '';
+  sessions.forEach((s, i) => {
+    const d = document.createElement('div');
+    d.className = 'ses';
+    const btns = [['idle','空闲'],['thinking','思考'],['working','工作'],['waiting','等确认'],['error','出错']]
+      .map(([k, cn]) => '<button data-s="' + k + '" class="' + (s.state === k ? 'on' : '') + '">' + cn + '</button>').join('');
+    let acts = '';
+    if (s.state === 'working'){
+      acts = '<div class="sub">动作 ' + ['searching','commanding','editing','testing','using-tool']
+        .map(a => '<button data-act="' + a + '" class="' + (s.act === a ? 'on' : '') + '" style="appearance:none;border:1px solid rgba(125,175,255,.32);background:' +
+          (s.act === a ? 'rgba(90,150,255,.42)' : 'rgba(94,144,232,.1)') +
+          ';color:#cfe0ff;border-radius:8px;padding:4px 7px;font-size:11px;font-family:inherit">' +
+          ACT_CN[a] + '</button>').join('') + '</div>';
+    }
+    d.innerHTML =
+      '<div class="t"><span>' + s.name + '</span><i>推理 ' + EFFORT_CN[s.effort] + '</i>' +
+        (sessions.length > 1 ? '<span class="del" data-del="' + i + '">删</span>' : '') + '</div>' +
+      '<div class="bs">' + btns + '</div>' + acts;
+    d.querySelectorAll('button[data-s]').forEach(b => {
+      b.onclick = () => {
+        const st = b.dataset.s;
+        s.state = st;
+        if (st === 'success'){ playOverlay('success'); sfxWav('success'); setTimeout(()=>{ s.state='idle'; renderSessions(); refreshBase(); }, 1600); }
+        else if (st === 'error'){ sfxWav('error'); }
+        renderSessions(); refreshBase();
+      };
+    });
+    d.querySelectorAll('button[data-act]').forEach(b => {
+      b.onclick = () => { s.act = b.dataset.act; renderSessions(); refreshBase(); };
+    });
+    const del = d.querySelector('[data-del]');
+    if (del) del.onclick = () => { sessions.splice(i, 1); renderSessions(); refreshBase(); };
+    box.appendChild(d);
+  });
+  $('#addSes').textContent = '＋ 新建会话（' + sessions.length + '）';
+}
+$('#addSes').onclick = () => {
+  sessions.push({ id:'s' + (sessions.length + 1), name:'会话 ' + (sessions.length + 1),
+                  state:'idle', act:'editing', effort:'mid' });
+  renderSessions(); refreshBase();
+};
+$('#closeSheet').onclick = () => $('#sheet').classList.remove('on');
+
+/* ---------- 自动演示 ---------- */
+let demo = null;
+const DEMO_SEQ = ['thinking','working','working_search','working_command','waiting','success','error','idle'];
+function toggleDemo(on){
+  clearInterval(demo); demo = null;
+  if (!on) return;
+  demo = setInterval(() => {
+    const s = sessions[Math.floor(Math.random() * sessions.length)];
+    const st = DEMO_SEQ[Math.floor(Math.random() * DEMO_SEQ.length)];
+    s.state = st;
+    if (st === 'working'){
+      const as = ['searching','commanding','editing','testing','using-tool'];
+      s.act = as[Math.floor(Math.random() * as.length)];
+    }
+    if (st === 'success') sfxWav('success');
+    if (st === 'error') sfxWav('error');
+    renderSessions(); refreshBase();
+  }, 4200);
+}
+$('#autoDemo').onchange = e => toggleDemo(e.target.checked);
+
+/* ---------- 外观设置 ---------- */
+$('#sizeR').oninput = e => {
+  document.documentElement.style.setProperty('--petW', e.target.value + 'vw');
+  measure();
+};
+$('#lively').onchange = e => { lively = e.target.value; scheduleMicro(); };
+$('#sndOn').onchange = e => { soundOn = e.target.checked; };
+$('#hudOn').onchange = e => { $('#hud').style.display = e.target.checked ? '' : 'none'; };
+$('#resetPos').onclick = () => { defaultPos(); toast('已回到默认位置'); };
+
+/* dock 按钮 */
+document.querySelectorAll('#dock button').forEach(b => {
+  b.onclick = () => {
+    const a = b.dataset.a;
+    if (a === 'menu'){ $('#sheet').classList.add('on'); return; }
+    if (a === 'pat'){ interaction('head_pat'); SND.pat(); }
+    if (a === 'poke'){ interaction('poke'); SND.poke(); }
+    if (a === 'eat'){ interaction('eat_token'); SND.eat(); }
+    if (a === 'tail'){ interaction('tail'); SND.tail(); }
+  };
+});
+
+/* ---------- 启动 ---------- */
+function boot(){
+  resize(); initBubbles();
+  defaultPos();
+  renderWX();
+  renderSessions();
+  updateChip();
+  scheduleMicro();
+  setClip('idle', true);
+  loadWav();
+  // 预热常用台词，避免第一次切换卡顿
+  const warm = ['thinking', 'working', 'waiting', 'dragging', 'poke', 'head_pat'];
+  let i = 0;
+  const t = setInterval(() => {
+    if (i >= warm.length){ clearInterval(t); return; }
+    const im = new Image(); im.src = 'anim/' + warm[i] + '.webp'; i++;
+  }, 700);
+  setTimeout(() => refreshWX(true), 1200);
+  requestAnimationFrame(loop);
+}
+window.addEventListener('resize', () => { resize(); initBubbles(); });
+window.addEventListener('orientationchange', () => setTimeout(() => { resize(); defaultPos(); }, 260));
+document.addEventListener('gesturestart', e => e.preventDefault());
+/* ---------- Token 钱包 + 关闭（本地服务 127.0.0.1:8787） ---------- */
+(function(){
+  var w = document.getElementById('wallet'); if (!w) return;
+  var wB = document.getElementById('wBal'), wT = document.getElementById('wToday'),
+      wS = document.getElementById('wSub'), wRf = document.getElementById('wRf');
+  var isHttp = (location.protocol === 'http:' || location.protocol === 'https:');
+  var API = isHttp ? '' : 'http://127.0.0.1:8787';
+  var ib = null, needBind = false;
+
+  function fmt(n){ n = Number(n); if (!isFinite(n)) n = 0; return n.toFixed(2); }
+  function hhmm(ts){ var d = new Date(Number(ts) || Date.now());
+    return ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2); }
+  function setOff(msg){
+    w.classList.add('off'); w.classList.remove('low');
+    wB.textContent = '--'; wT.textContent = '今日已用 --'; wS.textContent = msg;
+  }
+
+  function render(st){
+    if (!st || !st.ok){ setOff(isHttp ? '服务未连接' : '未连接本地服务'); return; }
+    if (!st.bound){
+      setOff('未绑定 Key');
+      wS.innerHTML = '<span class="kb">点此绑定 DeepSeek Key</span>';
+      wT.textContent = '今日已用 ¥' + fmt(st.usage && st.usage.spend);
+      return;
+    }
+    w.classList.remove('off');
+    var u = st.usage || {};
+    var t = '今日已用 ¥' + fmt(u.spend);
+    if (u.fresh) t += ' <i>·今日首次采样</i>';
+    wT.innerHTML = t;
+    if (st.balance === null || st.balance === undefined){
+      needBind = true;
+      w.classList.add('off');
+      wB.textContent = '--';
+      wS.textContent = st.balanceErr ? 'Key 无效 · 点我重新绑定' : '读取失败 · 点我重试';
+      return;
+    }
+    needBind = false;
+    var raw = st.balance;
+    var b = (raw && typeof raw === 'object') ? Number(raw.total) : Number(raw);
+    if (!isFinite(b)) b = 0;
+    wB.textContent = fmt(b);
+    w.classList.toggle('low', b < 5);
+    wS.textContent = '更新 ' + hhmm(st.balanceTs);
+  }
+
+  function load(force){
+    if (force){ try { fetch(API + '/api/balance?force=1', {cache:'no-store'}); } catch(e){} }
+    return fetch(API + '/api/state', {cache:'no-store'}).then(function(r){ return r.json(); })
+      .then(function(st){ render(st); })
+      .catch(function(){ setOff(isHttp ? '服务未连接' : '未连接本地服务'); });
+  }
+
+  function bindUI(){
+    if (ib){ ib.remove(); ib = null; return; }
+    ib = document.createElement('div');
+    ib.className = 'kbox';
+    ib.innerHTML = '<input id="kIn" type="password" placeholder="sk-..." autocomplete="off">' +
+                   '<button id="kOk">绑定</button><button id="kNo">解绑</button>';
+    w.appendChild(ib);
+    var inp = ib.querySelector('#kIn');
+    ib.querySelector('#kOk').onclick = function(){
+      var k = (inp.value || '').trim();
+      if (k.length < 12){ toast('Key 太短了'); return; }
+      fetch(API + '/api/key', {method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({key: k})})
+        .then(function(r){ return r.json(); })
+        .then(function(j){
+          if (j.ok){ toast('绑定成功，正在取余额'); ib.remove(); ib = null; setTimeout(function(){ load(true); }, 500); }
+          else toast('绑定失败：' + (j.err || '未知'));
+        })
+        .catch(function(){ toast('绑定失败：连不上本地服务'); });
+    };
+    ib.querySelector('#kNo').onclick = function(){
+      fetch(API + '/api/key', {method:'POST', headers:{'Content-Type':'application/json'}, body: '{"key":""}'})
+        .then(function(){ toast('已解绑'); }).catch(function(){ toast('连不上本地服务'); });
+      ib.remove(); ib = null; setTimeout(function(){ load(false); }, 400);
+    };
+    try { inp.focus(); } catch(e){}
+  }
+
+  w.addEventListener('click', function(ev){
+    if (ib && ib.contains(ev.target)) return;
+    if (ev.target === wRf){ load(true); return; }
+    if (ev.target.className === 'kb'){ bindUI(); return; }
+    if (needBind){ bindUI(); return; }
+  });
+
+  var q = document.getElementById('quit');
+  if (q) q.addEventListener('click', function(ev){
+    if (ev) ev.stopPropagation();
+    // 先真正停掉后台服务：否则关掉页面后 service 仍在轮询余额，持续耗电
+    try {
+      fetch('/api/quit', { method: 'POST', cache: 'no-store', keepalive: true }).catch(function(){});
+    } catch(e){}
+    try { if (window.AndroidPet && window.AndroidPet.close){ window.AndroidPet.close(); return; } } catch(e){}
+    try { window.close(); } catch(e){}
+    setTimeout(function(){
+      if (document.hidden) return;
+      // 浏览器不允许脚本关窗（PWA/普通标签页都会被拦），给一个“已下班”遮罩，点一下重新叫醒
+      var ov = document.getElementById('bye');
+      if (!ov){
+        ov = document.createElement('div');
+        ov.id = 'bye';
+        ov.innerHTML = '<div class="byebox"><div class="byebig">大肥鱼下班了</div><div class="byesub" id="byeMsg">点这里再叫醒它</div></div>';
+        document.body.appendChild(ov);
+        ov.addEventListener('click', function(){
+          var m = document.getElementById('byeMsg');
+          if (ov.classList.contains('load')) return;
+          ov.classList.add('load');
+          if (m) m.textContent = '正在叫醒…';
+          var done = function(ok){
+            if (ok){ location.reload(); return; }
+            ov.classList.remove('load');
+            if (m) m.textContent = '服务没在跑，先执行 run.sh';
+          };
+          fetch('/api/ping', { cache: 'no-store' }).then(function(r){ return r.json(); })
+            .then(function(j){ done(!!(j && j.ok)); }).catch(function(){ done(false); });
+        });
+      }
+      ov.classList.add('on');
+    }, 260);
+  });
+
+  document.addEventListener('visibilitychange', function(){
+    if (!document.hidden) load(false);
+  });
+
+  load(false);
+  setInterval(function(){ load(false); }, 10 * 60 * 1000);
+  window.petWalletRefresh = function(){ load(true); };
+  if (isHttp && 'serviceWorker' in navigator){ try{ navigator.serviceWorker.register('/sw.js'); }catch(e){} }
+})();
+
+boot();
+</script>
+</body>
+</html>

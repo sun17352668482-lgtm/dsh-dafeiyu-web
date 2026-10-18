@@ -13,10 +13,14 @@
   <img alt="license" src="https://img.shields.io/badge/license-MIT-blue">
   <img alt="node" src="https://img.shields.io/badge/node-%3E%3D16-brightgreen">
   <img alt="deps" src="https://img.shields.io/badge/dependencies-0-success">
+  <img alt="demo" src="https://img.shields.io/badge/demo-GitHub%20Pages-2ea44f">
 </p>
 
+> 🔗 **在线试玩（GitHub Pages）**：<https://sun17352668482-lgtm.github.io/dsh-dafeiyu-web/>
+>
+> 手机上点开就能玩：桌宠会动、能拖动、能摸头、能喂 token、能关掉。但 Pages 是**纯静态托管，没有 Node 后端**，所以
+> **余额看板会显示「离线」** —— 拉余额必须靠本地 `svc.js` 代理（见「快速开始」）。这是设计如此，不是 bug。
 ---
-
 ## 这是什么
 
 一个**零依赖、零构建**的单页桌宠。核心只有两个文件：
